@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hey Shona! — 3-Minute Feature Walkthrough (Official Demo)</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131a29;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #ec4899;
+      --primary-hover: #db2777;
+      --accent: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background: radial-gradient(circle at top right, #1f1435 0%, var(--bg) 60%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      max-width: 1300px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand-title {
+      font-size: 26px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-title span {
+      background: linear-gradient(135deg, #ec4899, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge {
+      font-size: 13px;
+      background: rgba(236, 72, 153, 0.15);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+      color: #f472b6;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .download-btn {
+      background: linear-gradient(135deg, var(--primary), #d946ef);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+      transition: all 0.2s ease;
+    }
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+    }
+    .main-layout {
+      width: 100%;
+      max-width: 1300px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .video-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      background: #000;
+      aspect-ratio: 16 / 9;
+    }
+    .video-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 6px;
+    }
+    .video-meta h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .video-meta p {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .chapters-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: fit-content;
+      max-height: 750px;
+      overflow-y: auto;
+    }
+    .chapters-card h3 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      color: #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chapter-item {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .chapter-item:hover {
+      background: rgba(236, 72, 153, 0.08);
+      border-color: rgba(236, 72, 153, 0.3);
+      transform: translateX(4px);
+    }
+    .chapter-item.active {
+      background: rgba(236, 72, 153, 0.15);
+      border-color: var(--primary);
+    }
+    .ch-time {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(236, 72, 153, 0.2);
+      padding: 2px 8px;
+      border-radius: 6px;
+      min-width: 48px;
+      text-align: center;
+      margin-top: 2px;
+    }
+    .ch-info {
+      flex: 1;
+    }
+    .ch-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .ch-desc {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      💫 Hey Shona! <span>3-Min Demo Video</span>
+      <span class="badge">Female Voiceover • 2:50</span>
+    </div>
+    <a href="Hey_Shona_3Min_Demo_Video.mp4" download="Hey_Shona_3Min_Demo_Video.mp4" class="download-btn">
+      ⬇️ Download Video (MP4)
+    </a>
+  </header>
+
+  <div class="main-layout">
+    <div class="video-card">
+      <video id="demoVideo" controls preload="metadata">
+        <source src="Hey_Shona_3Min_Demo_Video.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <div class="video-meta">
+        <div>
+          <h2 id="currentChapterTitle">1. Introduction & Brand Vision</h2>
+          <p id="currentChapterDesc">The Emotionally Intelligent AI Dating Platform</p>
+        </div>
+        <span class="badge">1080p Full HD</span>
+      </div>
+    </div>
+
+    <div class="chapters-card">
+      <h3>
+        <span>📑 Feature Chapters</span>
+        <span style="font-size: 13px; color: var(--text-sub);">10 Sections</span>
+      </h3>
+
+      <div class="chapter-item active" onclick="seekTo(0)">
+        <span class="ch-time">0:00</span>
+        <div class="ch-info">
+          <div class="ch-title">1. Introduction & Mission</div>
+          <div class="ch-desc">Values-first dating with zero swipe fatigue</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(19.78)">
+        <span class="ch-time">0:20</span>
+        <div class="ch-info">
+          <div class="ch-title">2. Conversational Onboarding</div>
+          <div class="ch-desc">Private Relationship Blueprint generation</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(39.03)">
+        <span class="ch-time">0:39</span>
+        <div class="ch-info">
+          <div class="ch-title">3. Curated Candidate Discovery</div>
+          <div class="ch-desc">Intentional 4:5 cards with AI compatibility headlines</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(59.86)">
+        <span class="ch-time">1:00</span>
+        <div class="ch-info">
+          <div class="ch-title">4. 5D Compatibility Engine</div>
+          <div class="ch-desc">Values, communication, lifestyle, emotional IQ & stars</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(80.24)">
+        <span class="ch-time">1:20</span>
+        <div class="ch-info">
+          <div class="ch-title">5. Explainable Compatibility Reports</div>
+          <div class="ch-desc">Transparent scoring, synergy highlights & growth tips</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(98.70)">
+        <span class="ch-time">1:39</span>
+        <div class="ch-info">
+          <div class="ch-title">6. Cupid AI Wingman</div>
+          <div class="ch-desc">Personalized icebreakers & relationship advice</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(114.59)">
+        <span class="ch-time">1:55</span>
+        <div class="ch-info">
+          <div class="ch-title">7. Shona AI Assistant & Chat</div>
+          <div class="ch-desc">Real-time coaching & safe messaging environment</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(129.95)">
+        <span class="ch-time">2:10</span>
+        <div class="ch-info">
+          <div class="ch-title">8. Date Planner & Safety System</div>
+          <div class="ch-desc">Curated public venues, itineraries & trust checks</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(145.38)">
+        <span class="ch-time">2:25</span>
+        <div class="ch-info">
+          <div class="ch-title">9. Horoscope & Synastry Match</div>
+          <div class="ch-desc">Vedic Guna Milan & Western astrological harmony</div>
+        </div>
+      </div>
+
+      <div class="chapter-item" onclick="seekTo(159.44)">
+        <span class="ch-time">2:40</span>
+        <div class="ch-info">
+          <div class="ch-title">10. Conclusion & Outro</div>
+          <div class="ch-desc">Dating, redefined for human connection</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('demoVideo');
+    const items = document.querySelectorAll('.chapter-item');
+    const titleEl = document.getElementById('currentChapterTitle');
+    const descEl = document.getElementById('currentChapterDesc');
+
+    const chapters = [
+      { time: 0, title: "1. Introduction & Brand Vision", desc: "The Emotionally Intelligent AI Dating Platform" },
+      { time: 19.78, title: "2. Conversational Onboarding", desc: "Private Relationship Blueprint Generation" },
+      { time: 39.03, title: "3. Curated Candidate Discovery", desc: "Intentional 4:5 cards with AI compatibility headlines" },
+      { time: 59.86, title: "4. 5D Compatibility Engine", desc: "Values, communication, lifestyle, emotional IQ & stars" },
+      { time: 80.24, title: "5. Explainable Compatibility Reports", desc: "Transparent scoring, synergy highlights & growth tips" },
+      { time: 98.70, title: "6. Cupid AI Wingman", desc: "Personalized icebreakers & relationship advice" },
+      { time: 114.59, title: "7. Shona AI Assistant & Chat", desc: "Real-time coaching & safe messaging environment" },
+      { time: 129.95, title: "8. Date Planner & Safety System", desc: "Curated public venues, itineraries & trust checks" },
+      { time: 145.38, title: "9. Horoscope & Synastry Match", desc: "Vedic Guna Milan & Western astrological harmony" },
+      { time: 159.44, title: "10. Conclusion & Outro", desc: "Dating, redefined for human connection" }
+    ];
+
+    function seekTo(sec) {
+      video.currentTime = sec;
+      video.play();
+    }
+
+    video.addEventListener('timeupdate', () => {
+      const cur = video.currentTime;
+      let activeIdx = 0;
+      for (let i = chapters.length - 1; i >= 0; i--) {
+        if (cur >= chapters[i].time - 0.5) {
+          activeIdx = i;
+          break;
+        }
+      }
+      items.forEach((it, idx) => {
+        if (idx === activeIdx) {
+          it.classList.add('active');
+          titleEl.textContent = chapters[idx].title;
+          descEl.textContent = chapters[idx].desc;
+        } else {
+          it.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+node_modules
+dist
+.pytest_cache
+*.log
+dating_platform.db
+Hey_Shona_Startup_Buildathon_Pitch_Deck.pptx
+generate_deck.py
