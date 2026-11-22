@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import httpx2
 from google import genai
 from google.genai import types
 from google.genai.errors import APIError

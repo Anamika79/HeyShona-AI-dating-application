@@ -1,32 +1,42 @@
 import React from 'react';
+import {
+  Compass,
+  HeartHandshake,
+  Sparkles,
+  Bot,
+  User,
+  Shield,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import { BasicProfile } from '../../types/profile';
 
-export type ActiveNavView =
-  | 'home'
-  | 'compat-engine'
+export type PrimaryDestination =
+  | 'discover'
   | 'connections'
-  | 'chat'
-  | 'profile-intel'
-  | 'horoscope-match'
-  | 'ai-assistant'
-  | 'chat-intel'
-  | 'date-planner'
-  | 'safety-intel';
+  | 'ai-insights'
+  | 'shona-ai'
+  | 'profile'
+  | 'settings';
+
+export type ActiveNavView = PrimaryDestination | string;
 
 interface SidebarProps {
-  activeView: ActiveNavView;
-  onSelectView: (view: ActiveNavView) => void;
+  activeDestination: PrimaryDestination;
+  onSelectDestination: (dest: PrimaryDestination) => void;
   connectionsCount: number;
   basicProfile: BasicProfile;
-  onOpenProfile: () => void;
+  currentTheme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  activeView,
-  onSelectView,
+  activeDestination,
+  onSelectDestination,
   connectionsCount,
   basicProfile,
-  onOpenProfile,
+  currentTheme,
+  onToggleTheme,
 }) => {
   const defaultAvatar =
     basicProfile.gender === 'Male'
@@ -37,149 +47,117 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const avatarSrc = basicProfile.avatar_url || defaultAvatar;
 
+  const navItems: { id: PrimaryDestination; label: string; icon: React.ReactNode; badge?: number }[] = [
+    {
+      id: 'discover',
+      label: 'Discover',
+      icon: <Compass size={19} />,
+    },
+    {
+      id: 'connections',
+      label: 'Connections',
+      icon: <HeartHandshake size={19} />,
+      badge: connectionsCount > 0 ? connectionsCount : undefined,
+    },
+    {
+      id: 'ai-insights',
+      label: 'AI Insights',
+      icon: <Sparkles size={19} />,
+    },
+    {
+      id: 'shona-ai',
+      label: 'Shona AI',
+      icon: <Bot size={19} />,
+    },
+    {
+      id: 'profile',
+      label: 'My Profile',
+      icon: <User size={19} />,
+    },
+  ];
+
   return (
     <aside className="app-sidebar">
-      {/* Sidebar Brand - Clicking returns to Home */}
+      {/* Brand Header */}
       <div
-        className="sidebar-brand clickable"
-        onClick={() => onSelectView('home')}
-        title="Return to Hey Shona! Home"
+        className="sidebar-brand"
+        onClick={() => onSelectDestination('discover')}
         role="button"
         tabIndex={0}
       >
-        <div className="sidebar-logo">
-          <span>💕</span>
-        </div>
+        <div className="sidebar-logo-icon">💫</div>
         <div className="sidebar-brand-text">
-          <h2 className="sidebar-title">Hey Shona!</h2>
-          <span className="sidebar-subtitle">AI Dating Platform</span>
+          <h2>Hey Shona!</h2>
+          <span>Intentional Dating</span>
         </div>
       </div>
 
-      {/* Main Task Pane Navigation */}
+      {/* Main Navigation */}
       <nav className="sidebar-nav">
-        <div className="sidebar-nav-group">
-          <span className="sidebar-group-label">Core Engine</span>
+        <span className="sidebar-nav-label">Main Menu</span>
+        {navItems.map((item) => {
+          const isActive = activeDestination === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`sidebar-nav-btn ${isActive ? 'active' : ''}`}
+              onClick={() => onSelectDestination(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+              {item.badge !== undefined && (
+                <span className="sidebar-badge">{item.badge}</span>
+              )}
+            </button>
+          );
+        })}
 
-          {/* 1. Discover Compatible People */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'compat-engine' ? 'active' : ''}`}
-            onClick={() => onSelectView('compat-engine')}
-          >
-            <span className="nav-icon">🌟</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Discover Matches</span>
-              <span className="nav-desc">AI Compatibility Engine</span>
-            </div>
-            <span className="live-dot" title="Active feature" />
-          </button>
-
-          {/* 2. Connections & Chats */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'connections' || activeView === 'chat' ? 'active' : ''}`}
-            onClick={() => onSelectView('connections')}
-          >
-            <span className="nav-icon">💬</span>
-            <div className="nav-text-block">
-              <span className="nav-title">My Connections</span>
-              <span className="nav-desc">Chats & Alignment</span>
-            </div>
-            {connectionsCount > 0 && (
-              <span className="nav-count-badge">{connectionsCount}</span>
-            )}
-          </button>
-
-          {/* 3. Profile Intelligence */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'profile-intel' ? 'active' : ''}`}
-            onClick={() => onSelectView('profile-intel')}
-          >
-            <span className="nav-icon">🧠</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Profile Intelligence</span>
-              <span className="nav-desc">Values & Depth Analyzer</span>
-            </div>
-            <span className="live-dot" title="Active feature" />
-          </button>
-
-          {/* 4. Cupid AI Assistant */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'ai-assistant' ? 'active' : ''}`}
-            onClick={() => onSelectView('ai-assistant')}
-          >
-            <span className="nav-icon">🏹</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Cupid AI Assistant</span>
-              <span className="nav-desc">Starters & Coaching</span>
-            </div>
-            <span className="live-dot" title="Active Cupid Assistant" />
-          </button>
-
-          {/* 5. Chat Intelligence & Metrics */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'chat-intel' ? 'active' : ''}`}
-            onClick={() => onSelectView('chat-intel')}
-          >
-            <span className="nav-icon">📊</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Connection Insights</span>
-              <span className="nav-desc">AI-Powered Chat Metrics</span>
-            </div>
-            <span className="live-dot" title="Active Connection Intelligence" />
-          </button>
-
-          {/* 6. AI Personalized Date Planner */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'date-planner' ? 'active' : ''}`}
-            onClick={() => onSelectView('date-planner')}
-          >
-            <span className="nav-icon">🍷</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Date Planner</span>
-              <span className="nav-desc">Personalized Itineraries</span>
-            </div>
-            <span className="live-dot" title="Active Date Planner" />
-          </button>
-
-          {/* 7. AI Horoscope Matching - Cosmic Connections */}
-          <button
-            type="button"
-            className={`sidebar-nav-item ${activeView === 'horoscope-match' ? 'active' : ''}`}
-            onClick={() => onSelectView('horoscope-match')}
-          >
-            <span className="nav-icon">🔮</span>
-            <div className="nav-text-block">
-              <span className="nav-title">Horoscope Match</span>
-              <span className="nav-desc">Cosmic Connections (Kundli)</span>
-            </div>
-            <span className="live-dot" title="Active Horoscope Match" />
-          </button>
-        </div>
+        <span className="sidebar-nav-label" style={{ marginTop: '16px' }}>Account & Trust</span>
+        <button
+          type="button"
+          className={`sidebar-nav-btn ${activeDestination === 'settings' ? 'active' : ''}`}
+          onClick={() => onSelectDestination('settings')}
+        >
+          <span className="nav-icon"><Shield size={19} /></span>
+          <span>Settings & Safety</span>
+        </button>
       </nav>
 
-      {/* Sidebar Footer: Profile Trigger */}
+      {/* Footer Controls: Theme Toggle & User Pill */}
       <div className="sidebar-footer">
         <button
           type="button"
-          className="sidebar-user-pill"
-          onClick={onOpenProfile}
-          title="Open Profile Settings"
+          className="theme-toggle-btn"
+          onClick={onToggleTheme}
+          title={`Switch to ${currentTheme === 'light' ? 'Dark' : 'Light'} theme`}
         >
-          <div className="user-pill-avatar-wrap">
-            <img src={avatarSrc} alt={basicProfile.name} className="user-pill-avatar" />
-            <span className="user-pill-dot" />
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {currentTheme === 'light' ? <Sun size={15} color="#D9668D" /> : <Moon size={15} color="#E9D5DF" />}
+            <span>{currentTheme === 'light' ? 'Light Theme' : 'Dark Theme'}</span>
+          </span>
+          <span style={{ fontSize: '11px', opacity: 0.7 }}>Toggle</span>
+        </button>
+
+        <button
+          type="button"
+          className="sidebar-nav-btn"
+          onClick={() => onSelectDestination('profile')}
+          style={{ padding: '8px 10px', marginTop: '4px' }}
+        >
+          <img
+            src={avatarSrc}
+            alt={basicProfile.name}
+            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', textAlign: 'left' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
+              {basicProfile.name}
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              Relationship Blueprint
+            </span>
           </div>
-          <div className="user-pill-info">
-            <span className="user-pill-name">{basicProfile.name || 'My Profile'}</span>
-            <span className="user-pill-meta">{basicProfile.job || 'Click to view'}</span>
-          </div>
-          <span className="user-pill-arrow">⚙</span>
         </button>
       </div>
     </aside>

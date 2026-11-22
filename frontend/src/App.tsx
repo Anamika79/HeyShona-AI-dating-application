@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { Sidebar, ActiveNavView } from './components/layout/Sidebar';
+import { Sidebar, PrimaryDestination } from './components/layout/Sidebar';
 import { StatusVariant } from './components/common/StatusBadge';
-import { HomeSection } from './components/features/HomeSection';
-import { ProfileIntelligenceSection } from './components/features/ProfileIntelligenceSection';
-import { DatePlannerSection } from './components/features/DatePlannerSection';
 import { CompatibilityEngineSection } from './components/features/CompatibilityEngineSection';
-import { ConnectionsSection } from './components/features/ConnectionsSection';
-import { ChatSection } from './components/features/ChatSection';
-import { HoroscopeMatchSection } from './components/features/HoroscopeMatchSection';
+import { ConnectionsHub } from './components/features/ConnectionsHub';
+import { AIInsightsHub } from './components/features/AIInsightsHub';
+import { ShonaAISection } from './components/features/ShonaAISection';
+import { ProfileHub } from './components/features/ProfileHub';
+import { SettingsPrivacySection } from './components/features/SettingsPrivacySection';
+import { LandingSection } from './components/features/LandingSection';
 import { ProfileModal } from './components/features/ProfileModal';
 import { BasicProfileSetupModal } from './components/features/BasicProfileSetupModal';
 import { BasicProfile, ProfileIntelligenceData } from './types/profile';
@@ -17,10 +17,13 @@ import { Connection } from './types/chat';
 import { UserProfileSummary } from './types/compatibility';
 import { fetchHealth } from './api/health';
 import { HealthCheckResponse } from './types/api';
+import { Compass, HeartHandshake, Sparkles, Bot, User as UserIcon } from 'lucide-react';
 import './App.css';
+import './theme.css';
 
 const LOCAL_STORAGE_KEY = 'hey_shona_basic_profile';
 const CONNECTIONS_STORAGE_KEY = 'hey_shona_connections';
+const THEME_STORAGE_KEY = 'hey_shona_theme';
 
 const DEFAULT_BASIC_PROFILE: BasicProfile = {
   name: 'Anamika',
@@ -32,7 +35,6 @@ const DEFAULT_BASIC_PROFILE: BasicProfile = {
   bio: 'Passionate about art, typography, and specialty coffee. Looking for genuine empathy, intellectual banter, and mindful weekend trail walks.',
 };
 
-// Initial default connections with pre-loaded demo profiles
 const DEFAULT_INITIAL_CONNECTIONS: Connection[] = [
   {
     id: 'conn_maya',
@@ -127,6 +129,25 @@ interface DiagnosticState {
 }
 
 export const App: React.FC = () => {
+  // Theme state: defaults to 'light' per requirements, persists to localStorage
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    return saved === 'dark' ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Ignore write errors
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   const [basicProfile, setBasicProfile] = useState<BasicProfile>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -141,7 +162,6 @@ export const App: React.FC = () => {
     return localStorage.getItem('hey_shona_profile_configured') === 'true';
   });
 
-  // Connections list state
   const [connections, setConnections] = useState<Connection[]>(() => {
     try {
       const saved = localStorage.getItem(CONNECTIONS_STORAGE_KEY);
@@ -152,11 +172,12 @@ export const App: React.FC = () => {
     return DEFAULT_INITIAL_CONNECTIONS;
   });
 
-  // Active navigation view (sidebar task pane - defaults to Home entry)
-  const [activeNavView, setActiveNavView] = useState<ActiveNavView>('home');
+  // Primary destinations: Discover, Connections, AI Insights, Shona AI, Profile, Settings
+  const [activeDestination, setActiveDestination] = useState<PrimaryDestination>('discover');
   const [activeChatCandidateId, setActiveChatCandidateId] = useState<string | null>('user_3');
+  const [showLanding, setShowLanding] = useState<boolean>(false);
 
-  // Modals & intelligence state
+  // Modals
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState<boolean>(false);
   const [extractedData, setExtractedData] = useState<ProfileIntelligenceData | null>(null);
@@ -184,9 +205,7 @@ export const App: React.FC = () => {
     } catch (err) {
       const endTime = performance.now();
       const message =
-        err instanceof Error
-          ? err.message
-          : 'Unable to connect to the backend API.';
+        err instanceof Error ? err.message : 'Unable to connect to the backend API.';
       setDiagnostics({
         data: null,
         loading: false,
@@ -204,7 +223,7 @@ export const App: React.FC = () => {
     if (!isProfileConfigured) {
       setIsSetupModalOpen(true);
     } else {
-      setIsProfileOpen(true);
+      setActiveDestination('profile');
     }
   };
 
@@ -219,7 +238,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // Connect with a candidate from Discovery or Report
   const handleConnectCandidate = (candidate: UserProfileSummary) => {
     if (connections.some((c) => c.user.id === candidate.id)) return;
 
@@ -237,10 +255,18 @@ export const App: React.FC = () => {
     }
   };
 
-  // Launch chat directly with a specific connection
   const handleOpenChatWithConnection = (candidateId: string) => {
     setActiveChatCandidateId(candidateId);
-    setActiveNavView('chat');
+    setActiveDestination('connections');
+  };
+
+  const handleClearAllData = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem(CONNECTIONS_STORAGE_KEY);
+    localStorage.removeItem('hey_shona_profile_configured');
+    setBasicProfile(DEFAULT_BASIC_PROFILE);
+    setConnections(DEFAULT_INITIAL_CONNECTIONS);
+    setIsProfileConfigured(false);
   };
 
   const getSystemStatus = (): { label: string; variant: StatusVariant } => {
@@ -258,150 +284,171 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      {/* Left Sidebar Task Pane */}
+      {/* 1. Left Sidebar Navigation */}
       <Sidebar
-        activeView={activeNavView}
-        onSelectView={(view) => setActiveNavView(view)}
+        activeDestination={activeDestination}
+        onSelectDestination={(dest) => {
+          setShowLanding(false);
+          setActiveDestination(dest);
+        }}
         connectionsCount={connections.length}
         basicProfile={basicProfile}
-        onOpenProfile={handleProfileIconClick}
+        currentTheme={theme}
+        onToggleTheme={toggleTheme}
       />
 
-      {/* Main Content Pane */}
+      {/* 2. Main Application Pane */}
       <div className="app-main-pane">
         <Header
           systemStatus={getSystemStatus()}
           basicProfile={basicProfile}
           onOpenProfile={handleProfileIconClick}
-          onGoHome={() => setActiveNavView('home')}
+          onGoHome={() => {
+            setShowLanding(false);
+            setActiveDestination('discover');
+          }}
         />
 
         <main className="app-main-content">
-          {/* View 0: Home Platform Entry Hub */}
-          {activeNavView === 'home' && (
-            <HomeSection
-              basicProfile={basicProfile}
-              connectionsCount={connections.length}
-              onNavigate={(view) => setActiveNavView(view)}
-              onOpenProfile={handleProfileIconClick}
+          {/* Landing Mode Toggle Banner */}
+          {showLanding ? (
+            <LandingSection
+              onStartDiscovery={() => setShowLanding(false)}
+              onOpenOnboarding={() => {
+                setShowLanding(false);
+                setIsSetupModalOpen(true);
+              }}
             />
-          )}
+          ) : (
+            <>
+              {/* Destination 1: Discover Matches */}
+              {activeDestination === 'discover' && (
+                <CompatibilityEngineSection
+                  basicProfile={basicProfile}
+                  currentUserData={extractedData}
+                  connections={connections}
+                  onConnectCandidate={handleConnectCandidate}
+                  onOpenChat={handleOpenChatWithConnection}
+                />
+              )}
 
-          {/* View 1: Discover Matches (Compatibility Engine with Hover Profiles) */}
-          {activeNavView === 'compat-engine' && (
-            <CompatibilityEngineSection
-              basicProfile={basicProfile}
-              currentUserData={extractedData}
-              connections={connections}
-              onConnectCandidate={handleConnectCandidate}
-              onOpenChat={handleOpenChatWithConnection}
-            />
-          )}
+              {/* Destination 2: Connections & Date Planner */}
+              {activeDestination === 'connections' && (
+                <ConnectionsHub
+                  connections={connections}
+                  initialActiveId={activeChatCandidateId}
+                  currentUserName={basicProfile.name}
+                  onExploreDiscovery={() => setActiveDestination('discover')}
+                />
+              )}
 
-          {/* View 2: Connections List */}
-          {activeNavView === 'connections' && (
-            <ConnectionsSection
-              connections={connections}
-              onOpenChat={handleOpenChatWithConnection}
-              onExploreDiscovery={() => setActiveNavView('compat-engine')}
-            />
-          )}
+              {/* Destination 3: AI Insights */}
+              {activeDestination === 'ai-insights' && (
+                <AIInsightsHub
+                  basicProfile={basicProfile}
+                  connections={connections}
+                  onUpdateExtractedData={(data) => setExtractedData(data)}
+                  onConnectCandidate={handleConnectCandidate}
+                  onOpenChat={handleOpenChatWithConnection}
+                />
+              )}
 
-          {/* View 3: Live & Simulated Chat & Chat Metrics */}
-          {(activeNavView === 'chat' || activeNavView === 'chat-intel') && (
-            <ChatSection
-              connections={connections}
-              initialActiveId={activeChatCandidateId}
-              onBackToDiscovery={() => setActiveNavView('compat-engine')}
-            />
-          )}
+              {/* Destination 4: Shona AI Assistant */}
+              {activeDestination === 'shona-ai' && (
+                <ShonaAISection
+                  currentUserName={basicProfile.name}
+                  connections={connections}
+                  onOpenChat={handleOpenChatWithConnection}
+                />
+              )}
 
-          {/* View 4: Profile Intelligence Analyzer */}
-          {activeNavView === 'profile-intel' && (
-            <ProfileIntelligenceSection
-              basicProfile={basicProfile}
-              onUpdateExtractedData={(data) => setExtractedData(data)}
-            />
-          )}
+              {/* Destination 5: My Profile & Relationship Blueprint */}
+              {activeDestination === 'profile' && (
+                <ProfileHub
+                  basicProfile={basicProfile}
+                  intelligenceData={extractedData}
+                  onEditProfile={() => setIsSetupModalOpen(true)}
+                  onAnalyzeWithAI={() => setActiveDestination('ai-insights')}
+                />
+              )}
 
-          {/* View 5: Cupid AI Dating Assistant Wingman */}
-          {activeNavView === 'ai-assistant' && (
-            <div className="cupid-hub-view">
-              <div className="cupid-hub-card">
-                <div className="cupid-hub-header">
-                  <span className="cupid-wings-hero">🪽 🏹 🪽</span>
-                  <h2>Cupid AI Dating Assistant</h2>
-                  <p>
-                    Your AI Dating Wingman is ready! Open any conversation in <strong>My Connections</strong> or candidate card and click <strong>"🏹 Cupid AI Assistant"</strong> to generate personalized icebreakers, revive topics, and receive communication guidance.
-                  </p>
-                  <div className="cupid-hub-actions">
-                    <button
-                      type="button"
-                      className="cupid-hub-btn"
-                      onClick={() => setActiveNavView('chat')}
-                    >
-                      💬 Open Chat with Cupid Wingman
-                    </button>
-                    <button
-                      type="button"
-                      className="cupid-hub-sec-btn"
-                      onClick={() => setActiveNavView('compat-engine')}
-                    >
-                      🌟 Browse Profiles with Cupid Tips
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+              {/* Destination 6: Settings, Privacy & Safety */}
+              {activeDestination === 'settings' && (
+                <SettingsPrivacySection
+                  currentTheme={theme}
+                  onToggleTheme={toggleTheme}
+                  onClearData={handleClearAllData}
+                />
+              )}
+            </>
           )}
-
-          {/* View 6: AI-Powered Personalized Date Planner */}
-          {activeNavView === 'date-planner' && (
-            <DatePlannerSection
-              connections={connections}
-              currentUserName={basicProfile.name}
-              onExploreConnections={() => setActiveNavView('compat-engine')}
-            />
-          )}
-
-          {/* View 7: AI-Powered Horoscope Match – Cosmic Connections */}
-          {activeNavView === 'horoscope-match' && (
-            <HoroscopeMatchSection
-              onConnectCandidate={handleConnectCandidate}
-              connectedCandidateIds={connections.map((c) => c.user.id)}
-              onOpenChat={handleOpenChatWithConnection}
-            />
-          )}
-
-          {/* Other Planned Roadmap Subsystems */}
-          {activeNavView !== 'home' &&
-            activeNavView !== 'compat-engine' &&
-            activeNavView !== 'connections' &&
-            activeNavView !== 'chat' &&
-            activeNavView !== 'profile-intel' &&
-            activeNavView !== 'ai-assistant' &&
-            activeNavView !== 'chat-intel' &&
-            activeNavView !== 'date-planner' &&
-            activeNavView !== 'horoscope-match' && (
-              <div className="coming-soon-banner">
-                <span className="banner-icon">🚀</span>
-                <h3>Feature in Active Development</h3>
-                <p>
-                  This milestone capability is next on our platform roadmap. You can continue discovering matches, connecting, chatting, or analyzing your profile intelligence right now.
-                </p>
-                <button
-                  type="button"
-                  className="return-btn"
-                  onClick={() => setActiveNavView('compat-engine')}
-                >
-                  Go to Discovery & Compatibility
-                </button>
-              </div>
-            )}
         </main>
 
         <Footer />
       </div>
+
+      {/* Mobile Bottom Navigation Bar (< 768px) */}
+      <nav className="mobile-bottom-nav">
+        <button
+          type="button"
+          className={`mobile-nav-btn ${activeDestination === 'discover' ? 'active' : ''}`}
+          onClick={() => {
+            setShowLanding(false);
+            setActiveDestination('discover');
+          }}
+        >
+          <Compass size={18} />
+          <span>Discover</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-btn ${activeDestination === 'connections' ? 'active' : ''}`}
+          onClick={() => {
+            setShowLanding(false);
+            setActiveDestination('connections');
+          }}
+        >
+          <HeartHandshake size={18} />
+          <span>Connect</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-btn ${activeDestination === 'ai-insights' ? 'active' : ''}`}
+          onClick={() => {
+            setShowLanding(false);
+            setActiveDestination('ai-insights');
+          }}
+        >
+          <Sparkles size={18} />
+          <span>Insights</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-btn ${activeDestination === 'shona-ai' ? 'active' : ''}`}
+          onClick={() => {
+            setShowLanding(false);
+            setActiveDestination('shona-ai');
+          }}
+        >
+          <Bot size={18} />
+          <span>Shona AI</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-btn ${activeDestination === 'profile' ? 'active' : ''}`}
+          onClick={() => {
+            setShowLanding(false);
+            setActiveDestination('profile');
+          }}
+        >
+          <UserIcon size={18} />
+          <span>Profile</span>
+        </button>
+      </nav>
 
       {/* Public Profile Preview Modal */}
       <ProfileModal
@@ -412,7 +459,7 @@ export const App: React.FC = () => {
         onEditBasicProfile={() => setIsSetupModalOpen(true)}
         onElaborateWithAI={() => {
           setIsProfileOpen(false);
-          setActiveNavView('profile-intel');
+          setActiveDestination('ai-insights');
         }}
       />
 
